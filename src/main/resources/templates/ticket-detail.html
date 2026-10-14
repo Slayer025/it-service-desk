@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket #<span th:text="${ticket.id}"></span> - IT Service Desk</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        nav { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 1rem 2rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.9rem; }
+        nav a:hover { opacity: 0.8; }
+        
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 2rem; margin-bottom: 1.5rem; }
+        .card h2 { color: #1e3c72; margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .card h3 { color: #333; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 2px solid #f0f2f5; padding-bottom: 0.5rem; }
+        
+        .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .meta-item label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 4px; }
+        .meta-item span { font-size: 0.95rem; font-weight: 600; color: #333; }
+        
+        .description { line-height: 1.6; color: #555; margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid #eee; margin-bottom: 1.5rem; }
+        .tab-btn { padding: 10px 20px; background: none; border: none; font-size: 0.9rem; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+        .tab-btn.active { color: #2a5298; border-bottom-color: #2a5298; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Comments */
+        .comment { border-left: 3px solid #2a5298; padding-left: 1rem; margin-bottom: 1.2rem; }
+        .comment .author { font-weight: 700; color: #1e3c72; font-size: 0.9rem; }
+        .comment .time { font-size: 0.75rem; color: #999; margin-bottom: 0.4rem; }
+        .comment p { font-size: 0.9rem; line-height: 1.5; color: #555; }
+        
+        /* Audit Log */
+        .audit-entry { display: flex; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+        .audit-entry:last-child { border-bottom: none; }
+        .audit-time { color: #999; min-width: 140px; font-size: 0.8rem; }
+        .audit-action { font-weight: 600; color: #2a5298; min-width: 120px; }
+        .audit-details { color: #555; }
+        .audit-actor { color: #888; font-size: 0.8rem; }
+        
+        /* Forms */
+        textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; height: 80px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; resize: vertical; margin-bottom: 0.75rem; }
+        textarea:focus { outline: none; border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42,82,152,0.1); }
+        
+        select, button { padding: 10px 16px; border-radius: 8px; font-size: 0.9rem; border: 1px solid #ddd; }
+        select { margin-right: 0.5rem; }
+        button { background: #2a5298; color: white; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        button:hover { background: #1e3c72; }
+        
+        .status-form { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f2f5; }
+        .comment-form { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f2f5; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 0 1rem; }
+            .card { padding: 1.5rem; }
+            .meta-grid { grid-template-columns: 1fr 1fr; }
+            .tabs { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav><a th:href="@{/dashboard}">← Back to Dashboard</a></nav>
+    <div class="container">
+        <div class="card">
+            <h2 th:text="'#' + ${ticket.id} + ': ' + ${ticket.title}"></h2>
+            
+            <div class="meta-grid">
+                <div class="meta-item"><label>Status</label><span th:text="${ticket.status}"></span></div>
+                <div class="meta-item"><label>Priority</label><span th:text="${ticket.priority}"></span></div>
+                <div class="meta-item"><label>Assigned Team</label><span th:text="${ticket.assignedTeam}"></span></div>
+                <div class="meta-item"><label>SLA Deadline</label><span th:text="${#temporals.format(ticket.slaDeadline, 'MMM dd, yyyy HH:mm')}"></span></div>
+                <div class="meta-item"><label>Created</label><span th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy HH:mm')}"></span></div>
+            </div>
+            
+            <div class="description" th:text="${ticket.description}"></div>
+
+            <!-- Agent Only: Update Status -->
+            <div sec:authorize="hasRole('AGENT')" class="status-form">
+                <h3>Update Status</h3>
+                <form th:action="@{'/api/tickets/' + ${ticket.id} + '/status'}" method="post">
+                    <input type="hidden" name="_method" value="put">
+                    <select name="status">
+                        <option value="Open" th:selected="${ticket.status == 'Open'}">Open</option>
+                        <option value="In Progress" th:selected="${ticket.status == 'In Progress'}">In Progress</option>
+                        <option value="Resolved" th:selected="${ticket.status == 'Resolved'}">Resolved</option>
+                        <option value="Closed" th:selected="${ticket.status == 'Closed'}">Closed</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabs: Comments & Audit Log -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('comments')">💬 Comments</button>
+                <button class="tab-btn" onclick="switchTab('audit')">📋 Audit Trail</button>
+            </div>
+            
+            <div id="comments" class="tab-content active">
+                <div th:if="${#lists.isEmpty(comments)}" style="color:#999; padding:1rem 0;">No comments yet.</div>
+                <div th:each="comment : ${comments}" class="comment">
+                    <div class="author" th:text="${comment.author}"></div>
+                    <div class="time" th:text="${#temporals.format(comment.createdAt, 'MMM dd, yyyy HH:mm')}"></div>
+                    <p th:text="${comment.comment}"></p>
+                </div>
+                
+                <div class="comment-form">
+                    <h3>Add Comment</h3>
+                    <form th:action="@{'/api/tickets/' + ${ticket.id} + '/comments'}" method="post">
+                        <textarea name="comment" placeholder="Type your comment here..." required></textarea>
+                        <input type="hidden" name="author" th:value="${#authentication.name}">
+                        <button type="submit">Post Comment</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="audit" class="tab-content">
+                <div th:if="${#lists.isEmpty(auditLogs)}" style="color:#999; padding:1rem 0;">No audit entries yet.</div>
+                <div th:each="log : ${auditLogs}" class="audit-entry">
+                    <div class="audit-time" th:text="${#temporals.format(log.createdAt, 'MMM dd, HH:mm')}"></div>
+                    <div class="audit-action" th:text="${log.action}"></div>
+                    <div class="audit-details" th:text="${log.details}"></div>
+                    <div class="audit-actor" th:text="'by ' + ${log.actor}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - IT Service Desk</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+        nav { background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav strong { font-size: 1.2rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.9rem; }
+        nav a:hover { opacity: 0.8; }
+        
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+        .card h3 { color: #6c3483; margin-bottom: 1.5rem; font-size: 1.2rem; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 12px 16px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; border-bottom: 2px solid #eee; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .stat-box { text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 10px; }
+        .stat-box h4 { font-size: 2rem; color: #6c3483; margin-bottom: 0.3rem; }
+        .stat-box p { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 0 1rem; }
+            .card { padding: 1.5rem; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <strong>⚙️ Admin Panel</strong>
+        <a th:href="@{/dashboard}">← Back to Dashboard</a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <h3>System Overview</h3>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <h4 th:text="${totalTickets} ?: 0">0</h4>
+                    <p>Total Tickets</p>
+                </div>
+                <div class="stat-box">
+                    <h4 th:text="${openTickets} ?: 0">0</h4>
+                    <p>Open Tickets</p>
+                </div>
+                <div class="stat-box">
+                    <h4 th:text="${breachedTickets} ?: 0">0</h4>
+                    <p>SLA Breached</p>
+                </div>
+                <div class="stat-box">
+                    <h4 th:text="${resolvedToday} ?: 0">0</h4>
+                    <p>Resolved Today</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Ticket Categories</h3>
+            <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Ticket Count</th></tr></thead>
+                <tbody>
+                    <tr th:each="cat : ${categories}">
+                        <td th:text="${cat.id}"></td>
+                        <td th:text="${cat.name}"></td>
+                        <td th:text="${@ticketService.getByCategory(cat.id).size()}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Support Teams</h3>
+            <table>
+                <thead><tr><th>Team</th><th>Active Tickets</th></tr></thead>
+                <tbody>
+                    <tr><td>L1 Support</td><td th:text="${@ticketService.getByAssignedTeam('L1 Support').size()}">0</td></tr>
+                    <tr><td>L2 Support</td><td th:text="${@ticketService.getByAssignedTeam('L2 Support').size()}">0</td></tr>
+                    <tr><td>L3 Support</td><td th:text="${@ticketService.getByAssignedTeam('L3 Support').size()}">0</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

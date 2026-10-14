@@ -1,0 +1,50 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+### Application Properties (Security) ###
+# Ignore local overrides that might contain real passwords
+application-local.properties
+*.env
+
+### Database Files ###
+# If you ever use an embedded H2 database during testing
+*.db
+*.mv.db
+
+### OS Specific ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+logs/
+*.log
